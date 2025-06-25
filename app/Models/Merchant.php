@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property string $domain
  * @property string $display_name
- * @property string $turn_customers_into_affiliates
+ * @property bool $turn_customers_into_affiliates
  * @property User $user
  * @property float $default_commission_rate
  */
@@ -20,10 +20,11 @@ class Merchant extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'domain',
         'display_name',
         'turn_customers_into_affiliates',
-        'default_commission_rate'
+        'default_commission_rate',
     ];
 
     public function user(): BelongsTo
@@ -34,5 +35,10 @@ class Merchant extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function affiliates(): HasMany
+    {
+        return $this->hasMany(Affiliate::class);
     }
 }

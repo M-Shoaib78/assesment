@@ -11,6 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PayoutOrderJob implements ShouldQueue
 {
@@ -33,6 +34,23 @@ class PayoutOrderJob implements ShouldQueue
      */
     public function handle(ApiService $apiService)
     {
-        // TODO: Complete this method
+        DB::beginTransaction();
+
+        try {
+            // Call API to pay affiliate commission
+            $apiService->sendPayout($this->order->affiliate->user->email, $this->order->commission_owed);
+
+            // If successful, update payout status to paid
+            $this->order->update(['payout_status' => Order::STATUS_PAID]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Optionally log or rethrow exception to fail the job and retry
+            // Log::error('Payout failed for order '.$this->order->id.': '.$e->getMessage());
+
+            throw $e; // Let the job fail and retry according to Laravel queue settings
+        }
     }
 }

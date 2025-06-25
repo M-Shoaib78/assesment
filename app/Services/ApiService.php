@@ -37,6 +37,20 @@ class ApiService
      */
     public function sendPayout(string $email, float $amount)
     {
-        //
+        // Implement actual payout logic here.
+        // Throw RuntimeException on failure if needed.
+    }
+
+    /**
+     * Pay an affiliate a given amount.
+     *
+     * @param string $email
+     * @param float $amount
+     * @return void
+     * @throws RuntimeException on failure
+     */
+    public function payAffiliate(string $email, float $amount): void
+    {
+        $this->sendPayout($email, $amount);
     }
 }

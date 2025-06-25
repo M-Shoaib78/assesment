@@ -19,6 +19,7 @@ class OrderFactory extends Factory
         return [
             'subtotal' => $subtotal = round(rand(100, 999) / 3, 2),
             'commission_owed' => round($subtotal * 0.1, 2),
+            'external_order_id' => $this->faker->uuid(),
         ];
     }
 }

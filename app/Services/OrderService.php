@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Affiliate;
 use App\Models\Merchant;
 use App\Models\Order;
-use App\Models\User;
+use Illuminate\Support\Str;
 
 class OrderService
 {
@@ -23,6 +23,49 @@ class OrderService
      */
     public function processOrder(array $data)
     {
-        // TODO: Complete this method
+        // Ensure we have an external_order_id (fallback to UUID if missing)
+        $externalOrderId = $data['order_id'] ?? Str::uuid()->toString();
+
+        // Check for duplicate order by external_order_id
+        if (Order::where('external_order_id', $externalOrderId)->exists()) {
+            return; // Ignore duplicates
+        }
+
+        // Find the merchant by domain
+        $merchant = Merchant::where('domain', $data['merchant_domain'])->first();
+        if (!$merchant) {
+            return; // Merchant not found, exit silently
+        }
+
+        $discountCode = $data['discount_code'] ?? null;
+        $affiliate = null;
+
+        if ($discountCode) {
+            // Find affiliate by discount code for this merchant
+            $affiliate = $merchant->affiliates()->where('discount_code', $discountCode)->first();
+        }
+
+        // If no affiliate found and discount code is present, try to register one
+        if (!$affiliate && $discountCode) {
+            $affiliate = $this->affiliateService->register(
+                $merchant,
+                $data['customer_email'],
+                $data['customer_name'] ?? 'Unknown',
+                0.1
+            );
+        }
+
+        // Calculate commission owed (0 if no affiliate)
+        $commissionOwed = $affiliate ? $data['subtotal_price'] * $affiliate->commission_rate : 0;
+
+        // Create the order
+        Order::create([
+            'external_order_id' => $externalOrderId, // <-- Guaranteed not null
+            'subtotal' => $data['subtotal_price'],
+            'merchant_id' => $merchant->id,
+            'affiliate_id' => $affiliate?->id,
+            'commission_owed' => $commissionOwed,
+            'discount_code' => $affiliate?->discount_code,
+        ]);
     }
 }

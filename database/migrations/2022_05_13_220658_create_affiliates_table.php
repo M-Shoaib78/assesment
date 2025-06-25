@@ -15,11 +15,11 @@ return new class extends Migration
     {
         Schema::create('affiliates', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
-            $table->foreignId('merchant_id');
-            // TODO: Replace me with a brief explanation of why floats aren't the correct data type, and replace with the correct data type.
-            $table->float('commission_rate');
-            $table->string('discount_code');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('merchant_id')->constrained()->onDelete('cascade');
+            // float is imprecise for money, use decimal(8, 2) or appropriate precision
+            $table->decimal('commission_rate', 8, 2);
+            $table->string('discount_code')->nullable();
             $table->timestamps();
         });
     }

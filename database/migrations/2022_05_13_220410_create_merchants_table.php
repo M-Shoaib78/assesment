@@ -15,11 +15,11 @@ return new class extends Migration
     {
         Schema::create('merchants', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('domain')->unique();
             $table->string('display_name');
             $table->boolean('turn_customers_into_affiliates')->default(true);
-            $table->float('default_commission_rate')->default(0.1);
+            $table->float('default_commission_rate', 5, 2)->default(0.1);
             $table->timestamps();
         });
     }
